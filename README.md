@@ -1,46 +1,206 @@
-# Getting Started with Create React App
+# React with typescript, yarn, prettier, eslint and pre commit hook (husky)
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+> This configuration uses create-react-app and airbnb's style guide as the base style guide.
 
-## Available Scripts
+## Pre-requirements
+```
+node 16+
+npm 8+
+yarn
+```
 
-In the project directory, you can run:
+## Step 1 - Setup basic app
 
-### `yarn start`
+#### 1.1. Create react app
+```
+yarn create react-app [name] --template typescript
+```
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+#### 1.2. Upgrade yarn
+> Ensure to use newest version of the yarn (at leaset v. 3)
+```
+yarn set version stable
+```
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+#### 1.3. Add to .yarnrc in the root directory
+> Defines what linker should be used for installing Node packages
+```
+nodeLinker: node-modules
+```
 
-### `yarn test`
+#### 1.4. Update .gitignore
+```
+# yarn
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+# Optional eslint cache
+.eslintcache
 
-### `yarn build`
+# Logs
+logs
+*.log
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Step 2 - Setup prettier
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+#### 2.1. Install prettier as dev dependency.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```
+yarn add --dev prettier
+```
 
-### `yarn eject`
+#### 2.2. Add to .prettierrc.json file in the root directory
+ 
+ ```
+{
+  "arrowParens": "avoid",
+  "printWidth": 100,
+  "semi": false,
+  "singleQuote": true,
+  "tabWidth": 2,
+  "trailingComma": "es5",
+  "useTabs": false
+}
+ ```
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+#### 2.3. Verify prettier setup
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```
+yarn prettier --check ./src
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+> It should print some formatting errors - this is ok. Continue with rest of the setup before fixing them.
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+## Step 3 - Setup eslint
 
-## Learn More
+#### 3.1. Install eslint
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```
+yarn add eslint eslint-config-airbnb eslint-config-airbnb-typescript eslint-config-prettier eslint-config-standard-with-typescript eslint-plugin-import eslint-plugin-n eslint-plugin-promise eslint-plugin-react
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+#### 3.2. Create .eslintrc.json file
+```
+{
+  "env": {
+    "browser": true,
+    "es2021": true
+  },
+  "extends": [
+    "airbnb",
+    "airbnb-typescript",
+    "plugin:react/jsx-runtime",
+    "prettier"
+  ],
+  "overrides": [
+  ],
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module",
+    "project": "./tsconfig.json"
+  },
+  "plugins": [
+    "react"
+  ],
+  "rules": {
+    "@typescript-eslint/semi": ["error", "never"]
+  }
+}
+
+```
+
+#### 3.3. Disable the default eslint rules specified by "create-react-app" by deleting "eslintConfig" object in package.json.
+```
+{
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  }
+}
+```
+
+#### 3.4. Verify eslint setup
+
+```
+yarn eslint --ext .jsx,.js,.tsx,.ts ./src
+```
+
+> It should print some errors like "XXXX problems (XXXX errors, XX warnings)"
+
+## Step 4 - Setup pre-commit hook with husky & lint-staged
+
+#### 4.1. Install husky and lint-staged
+```
+yarn add --dev husky lint-staged
+```
+
+#### 4.2. Set up a pre-commit hook using husky & lint-staged to make sure that every commit is formatted.
+
+```
+yarn husky install
+yarn husky add .husky/pre-commit "yarn lint-staged"
+```
+
+#### 4.3. Add prepare script to the package.json
+```
+"scripts": {
+    ...
+    "prepare": "husky install"
+  },
+```
+
+#### 4.4. Add lint-staged configuration to package.json
+
+```
+{
+  ....
+  "lint-staged": {
+    "src/**/*.{js,jsx,ts,tsx,json,css,scss,md}": "prettier --write",
+    "src/**/*.{js,jsx,ts,tsx}": "eslint --cache --max-warnings=0"
+  }
+}
+```
+
+#### 4.5. Verify pre-commit hook setup
+
+##### 4.5.1. Stage all the modified files and commit your changes
+
+```
+git add .
+git commit -m "initial setup"
+```
+
+> It should trigger pre-commit hook and show messages similar like below
+
+```
+[STARTED] Preparing...
+[SUCCESS] Preparing...
+[STARTED] Hiding unstaged changes to partially staged files...
+[SUCCESS] Hiding unstaged changes to partially staged files...
+[STARTED] Running tasks...
+[STARTED] Running tasks for src/**/*.{js,jsx,ts,tsx}
+[STARTED] Running tasks for src/**/*.{js,jsx,ts,tsx,css,scss,md}
+[STARTED] eslint --cache --fix
+[STARTED] prettier --write --ignore-unknown
+[SUCCESS] prettier --write --ignore-unknown
+[SUCCESS] Running tasks for src/**/*.{js,jsx,ts,tsx,css,scss,md}
+...........
+...........
+...........
+...........
+...........
+...........
+✖ XXXX problems (XXXX errors, XXXX warnings)
+
+husky - pre-commit hook exited with code 1 (error)
+```
+
+## If you get similar messages, then your configuration is working properly.
