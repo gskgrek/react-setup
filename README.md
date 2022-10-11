@@ -82,7 +82,7 @@ yarn prettier --check ./src
 #### 3.1. Install eslint
 
 ```
-yarn add eslint eslint-config-airbnb eslint-config-airbnb-typescript eslint-config-prettier eslint-config-standard-with-typescript eslint-plugin-import eslint-plugin-n eslint-plugin-promise eslint-plugin-react
+yarn add --dev eslint eslint-config-airbnb eslint-config-airbnb-typescript eslint-config-prettier eslint-config-standard-with-typescript eslint-plugin-import eslint-plugin-n eslint-plugin-promise eslint-plugin-react
 ```
 
 #### 3.2. Create .eslintrc.json file
